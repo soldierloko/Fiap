@@ -1,5 +1,4 @@
 import cartolafc
 api = cartolafc.Api()
-time = api.time(nome='Falydos FC')
-time.ultima_pontuacao
-time.info.nome
+mercado = api.mercado()
+print(mercado.rodada_atual)
