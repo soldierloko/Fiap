@@ -56,5 +56,5 @@ for nome in os.listdir(caminho):
         frames = [df_final,df]
         df_final = pd.concat(frames)
         
-df_final.to_csv(caminho + "/" +"Rodadas_2018.csv")  
+df_final.to_csv(caminho + "/" +"Rodadas_2018.txt")  
 print('Concluido com Sucesso!')    
