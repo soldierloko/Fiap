@@ -1,4 +1,6 @@
 import pyodbc 
+import pandas as pd
+from  datetime import date
 
 server = 'fiapsprints.cq4ssupaqc1d.us-east-2.rds.amazonaws.com' 
 database = 'FIAP' 
@@ -8,32 +10,40 @@ cnxn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER='+server+';
 cursor = cnxn.cursor()
 
 
-def calculo(user):
+def calculo(user,round):
     #Faz a consulta no banco pelo número do User
-    cursor.execute("""SELECT  
-                        A.[ID_USUARIO]
-                        ,A.[NU_PESO]
-                        ,B.[NU_PORCENTAGEM_ACERTOS]
-                    FROM [FIAP].[dbo].[TbAtividades] A WITH (NOLOCK) 
-                    INNER JOIN [FIAP].[dbo].[TbAnswers] B WITH (NOLOCK)
-                    ON A.[ID_ATIVIDADE] = B.[ID_ATIVIDADE]
-                        AND A.[ID_USUARIO] = B.[ID_USUARIO]
-                    WHERE A.[ID_USUARIO] = 255480
-                            AND B.[NU_PORCENTAGEM_ACERTOS] > 0 ;""") 
-    row = cursor.fetchone()
+    df = pd.read_sql_query("""SELECT  
+                                A.[ID_USUARIO]
+                                ,A.ROUNDID
+                                ,A.[NU_PESO]
+                                ,B.[NU_PORCENTAGEM_ACERTOS]
+                            FROM [FIAP].[dbo].[TbAtividades] A WITH (NOLOCK) 
+                            INNER JOIN [FIAP].[dbo].[TbAnswers] B WITH (NOLOCK)
+                            ON A.[ID_ATIVIDADE] = B.[ID_ATIVIDADE]
+                                AND A.[ID_USUARIO] = B.[ID_USUARIO]
+                            INNER JOIN (SELECT TOP 1 [roundId]
+                                            ,[approved]
+                                        FROM [FIAP].[dbo].[TbMissoes] WITH (NOLOCK)) C
+                            ON A.ROUNDID = C.ROUNDID
+                            WHERE [approved] = 1
+                                    AND A.[ID_USUARIO] = ?
+                                    AND A.ROUNDID = ? """,con=cnxn, params=(user,round)) 
+    
+    
+    scoremission = 0
+    for index, row in df.iterrows():
+        #Grava os Id's para gravação no redis
+        ID_USUARIO = row['ID_USUARIO']
+        ID_ROUND = row['ROUNDID']
 
-    tt_ponto = 0 
-    #Faz o cálculo para o User
-    while row:
+        #Cálculo para score de missão
+        val_Atividade = (100/10) * float(df['NU_PESO'][index]) * float(df['NU_PORCENTAGEM_ACERTOS'][index])
 
+        scoremission =  scoremission + val_Atividade
 
-        print(row)
-        row = cursor.fetchone()
-
-
+    return [ID_USUARIO,ID_ROUND,scoremission,date.today()]
 #Chama a Função
-calculo(255480)
-
+print(calculo(255480,52472))
 
 
 cnxn.close()
