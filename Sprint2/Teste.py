@@ -47,6 +47,6 @@ df = df.pivot_table("Score_Atividade", ["ID_USUARIO", "ROUNDID"], aggfunc="sum")
 #Coloca a data de inserção
 df['Date'] = date.today() 
 
-df.to_json('Score.json')
+df.to_csv('Score.csv',index=False)
 
 cnxn.close()
