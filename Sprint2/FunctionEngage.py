@@ -40,8 +40,8 @@ def calculo(user,round):
         val_Atividade = (100/10) * float(df['NU_PESO'][index]) * float(df['NU_PORCENTAGEM_ACERTOS'][index])
 
         scoremission =  scoremission + val_Atividade
-
-    return [ID_USUARIO,ID_ROUND,scoremission,date.today()]
+    dia = date.today()
+    return [ID_USUARIO,ID_ROUND,scoremission,dia]
 #Chama a Função
 print(calculo(255480,52472))
 
